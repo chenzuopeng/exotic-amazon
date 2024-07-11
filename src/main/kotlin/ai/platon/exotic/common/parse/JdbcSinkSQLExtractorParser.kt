@@ -1,7 +1,10 @@
 package ai.platon.exotic.common.parse
 
 import ai.platon.exotic.amazon.crawl.boot.JdbcCommitConfig
+import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.exotic.amazon.crawl.boot.component.common.AbstractSQLExtractor
+import ai.platon.exotic.common.jdbc.JdbcCommitter
+import ai.platon.exotic.common.jdbc.JdbcConfig
 import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.sql.SQLTemplate
 import ai.platon.pulsar.crawl.parse.ParseFilter
@@ -17,10 +20,7 @@ import org.slf4j.LoggerFactory
  * */
 class JdbcSinkSQLExtractorParser(
     private val extractConfigResource: String,
-    /**
-     * @Deprecated config AmazonJdbcSinkSQLExtractor.jdbcCommitter programmatically.
-     * */
-    private val jdbcConfigResource: String,
+    private var jdbcConfig: JdbcConfig,
     private val extractorFactory: (JdbcCommitConfig) -> AbstractSQLExtractor
 ) {
     private val logger = LoggerFactory.getLogger(JdbcSinkSQLExtractorParser::class.java)
@@ -54,6 +54,9 @@ class JdbcSinkSQLExtractorParser(
             it.urlFilter = rule.urlPattern.toRegex()
             it.minContentSize = rule.minContentSize
             it.sqlTemplate = sqlTemplate
+            when (it) {
+                is AmazonJdbcSinkSQLExtractor -> it.jdbcCommitter = JdbcCommitter(jdbcConfig,rule.collection)
+            }
         }
     }
 

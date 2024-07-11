@@ -1,6 +1,7 @@
 package ai.platon.exotic.amazon.crawl
 
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
+import ai.platon.exotic.common.jdbc.JdbcConfig
 import ai.platon.pulsar.common.ResourceLoader
 import org.junit.Ignore
 import org.junit.Test
@@ -27,7 +28,10 @@ class TestRequiredResources: TestBase() {
         assertTrue { ResourceLoader.exists(sqls) }
         assertTrue { ResourceLoader.exists("$sqls/crawl/x-asin.sql") }
 
-        val extractorInstaller = WebDataExtractorInstaller(extractorFactory)
+        var jdbcConfigFactory = {
+            JdbcConfig("com.mysql.cj.jdbc.Driver","jdbc:mysql://localhost:3306/exotic-amazon","root","123456")
+        }
+        val extractorInstaller = WebDataExtractorInstaller(jdbcConfigFactory,extractorFactory)
 //        assertTrue { ResourceLoader.exists(extractorInstaller.jdbcConfig) }
     }
 }

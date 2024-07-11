@@ -2,6 +2,7 @@ package ai.platon.exotic.amazon.crawl
 
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
+import ai.platon.exotic.common.jdbc.JdbcConfig
 import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.common.collect.LoadingUrlPool
 import ai.platon.pulsar.common.config.CapabilityTypes
@@ -119,7 +120,10 @@ class TestPreconditions: TestBase() {
     @Ignore("District restriction is disabled")
     @Test
     fun `Ensure the district is New York`() {
-        WebDataExtractorInstaller(extractorFactory).install(parseFilters)
+        var jdbcConfigFactory = {
+            JdbcConfig("com.mysql.cj.jdbc.Driver","jdbc:mysql://localhost:3306/exotic-amazon","root","123456")
+        }
+        WebDataExtractorInstaller(jdbcConfigFactory,extractorFactory).install(parseFilters)
 
         val asinExtractor = parseFilters.parseFilters
                 .filterIsInstance<AmazonJdbcSinkSQLExtractor>()

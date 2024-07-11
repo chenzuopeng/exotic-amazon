@@ -3,6 +3,7 @@ package ai.platon.exotic.amazon.crawl.core.handlers.parse
 import ai.platon.exotic.amazon.crawl.boot.JdbcCommitConfig
 import ai.platon.exotic.amazon.crawl.boot.component.common.AbstractSQLExtractor
 import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
+import ai.platon.exotic.common.jdbc.JdbcConfig
 import ai.platon.exotic.common.parse.JdbcSinkSQLExtractorParser
 import ai.platon.pulsar.common.ResourceLoader
 import ai.platon.pulsar.crawl.parse.ParseFilter
@@ -13,14 +14,11 @@ import org.slf4j.LoggerFactory
  * Add a parse filter to sync extracted records to the JDBC sink, for example, a MySQL database.
  * */
 class WebDataExtractorInstaller(
-        private val extractorFactory: (JdbcCommitConfig) -> AbstractSQLExtractor
+    private var jdbcConfigFactory: (() -> JdbcConfig),
+    private val extractorFactory: (JdbcCommitConfig) -> AbstractSQLExtractor
 ) {
     private val logger = LoggerFactory.getLogger(WebDataExtractorInstaller::class.java)
 
-    /**
-     * @Deprecated config AmazonJdbcSinkSQLExtractor.jdbcCommitter programmatically.
-     * */
-    val jdbcConfig = "config/jdbc-sink-config.json"
     val extractConfig = "sites/amazon/crawl/parse/extract-config.json"
 
     fun install(parseFilters: ParseFilters) {
@@ -28,7 +26,7 @@ class WebDataExtractorInstaller(
 
         logger.info("Initializing extractors, create extractors from config file | {}", extractConfig)
 
-        val configParser = JdbcSinkSQLExtractorParser(extractConfig, jdbcConfig, extractorFactory)
+        val configParser = JdbcSinkSQLExtractorParser(extractConfig, jdbcConfigFactory(), extractorFactory)
 
         val parsers = configParser.parse()
         parsers.forEach {

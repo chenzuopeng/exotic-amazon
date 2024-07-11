@@ -1,22 +1,13 @@
 package ai.platon.exotic.amazon.crawl
 
-import ai.platon.pulsar.common.DateTimes
 import ai.platon.pulsar.common.collect.UrlFeederHelper
 import ai.platon.pulsar.common.collect.ExternalUrlLoader
-import ai.platon.pulsar.common.collect.PriorityDataCollectorsTableFormatter
 import ai.platon.pulsar.common.getLogger
-import ai.platon.pulsar.common.sleepSeconds
-import ai.platon.pulsar.persist.WebDb
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
-import ai.platon.exotic.amazon.crawl.core.PredefinedTask
-import ai.platon.exotic.amazon.crawl.core.toResidentTask
+import ai.platon.exotic.common.jdbc.JdbcConfig
 import ai.platon.pulsar.crawl.parse.ParseFilters
-import ai.platon.scent.boot.autoconfigure.component.LoadingSeedsGenerator
 import org.junit.Before
-import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class TestPeriodicalCrawlTasks: TestBase() {
 
@@ -34,7 +25,10 @@ class TestPeriodicalCrawlTasks: TestBase() {
 
     @Before
     override fun setup() {
-        WebDataExtractorInstaller(extractorFactory).install(parseFilters)
+        var jdbcConfigFactory = {
+            JdbcConfig("com.mysql.cj.jdbc.Driver","jdbc:mysql://localhost:3306/exotic-amazon","root","123456")
+        }
+        WebDataExtractorInstaller(jdbcConfigFactory,extractorFactory).install(parseFilters)
         super.setup()
     }
 }

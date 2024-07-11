@@ -5,6 +5,7 @@ import ai.platon.exotic.amazon.crawl.boot.component.AmazonJdbcSinkSQLExtractor
 import ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonDetailPageHtmlChecker
 import ai.platon.exotic.amazon.crawl.core.handlers.fetch.AmazonPageCategorySniffer
 import ai.platon.exotic.amazon.crawl.core.handlers.parse.WebDataExtractorInstaller
+import ai.platon.exotic.common.jdbc.JdbcConfig
 import ai.platon.pulsar.common.getLogger
 import ai.platon.pulsar.crawl.parse.ParseFilters
 import ai.platon.pulsar.persist.HadoopUtils
@@ -15,6 +16,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
 
@@ -55,6 +57,7 @@ class CrawlerConfiguration(
      * Spring's ApplicationContext
      * */
     private val applicationContext: ApplicationContext,
+    private val environment: Environment,
 ) {
     private val logger = getLogger(CrawlerConfiguration::javaClass)
 
@@ -76,10 +79,15 @@ class CrawlerConfiguration(
         responseHandler.htmlIntegrityChecker.addLast(AmazonDetailPageHtmlChecker(conf))
         responseHandler.pageCategorySniffer.addLast(AmazonPageCategorySniffer(conf))
 
+        var jdbcConfigFactory = {
+            JdbcConfig(environment.getProperty("spring.datasource.driver-class-name",""),environment.getProperty("spring.datasource.url",""),environment.getProperty("spring.datasource.username",""),environment.getProperty("spring.datasource.password",""))
+        }
+
         val extractorFactory = { conf: JdbcCommitConfig ->
             applicationContext.getBean<AmazonJdbcSinkSQLExtractor>()
         }
 
-        WebDataExtractorInstaller(extractorFactory).install(parseFilters)
+        WebDataExtractorInstaller(jdbcConfigFactory,extractorFactory).install(parseFilters)
     }
+
 }

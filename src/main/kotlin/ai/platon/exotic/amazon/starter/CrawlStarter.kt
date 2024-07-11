@@ -148,7 +148,7 @@ class CrawlApplication(
 
 fun main(args: Array<String>) {
     var headless = false
-    var privacyCount = 2
+    var privacyCount = 1
     var maxTabs = 8
 
     var i = 0
